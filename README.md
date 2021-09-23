@@ -48,9 +48,6 @@ look at every storage account in the subscription.
 It won't scan empty files or files bigger than 32MB by default.  The options --maxsize and --minsize will 
 change this behavior.
 
-In order to scan an entire organization, this script must run under the master account or 
-a delegated account that can access AssumeRole for the each accounts IAM role OrganizationAccountAccessRole.
-
 Output can be specified for JSON or CSV format.  To write a file use the --json /path/to/file.json or --csv /path/to/file.csv option.
 
 This script will read a JSON configuration file of options, and several examples are in the config directory

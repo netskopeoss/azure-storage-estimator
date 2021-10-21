@@ -184,7 +184,7 @@ if __name__ == "__main__":
                 resource_group_list = resource_client.resource_groups.list()
             except Exception as ex:
                 oprint("error occured {}".format(ex))
-                file_stats['errors'].append("Couldn't get resource groups in subscription:"+sub_name+"("+str(ex)+")")
+                file_stats['errors'].append("Couldn't get resource groups in subscription:"+sub.display_name+"("+str(ex)+")")
                 pass
 
             for resource_group in resource_group_list:
@@ -195,7 +195,7 @@ if __name__ == "__main__":
                         try:
                             keys = storage_client.storage_accounts.list_keys(resource_group.name, account.name)
                         except Exception as ex:
-                            file_stats['errors'].append("Couldn't get accoun keys in subscription:"+sub_name+"("+str(ex)+")")
+                            file_stats['errors'].append("Couldn't get account keys in subscription:"+sub.display_name+"("+str(ex)+")")
                             continue
                         file_stats['subscription.storage_account'][sub.display_name][account.name] = {'size':0, 'files':0, 'size.ext':{}, 'files.ext':{}}
                         conn_string = f"DefaultEndpointsProtocol=https;EndpointSuffix=core.windows.net;AccountName={account.name};AccountKey={keys.keys[0].value}"

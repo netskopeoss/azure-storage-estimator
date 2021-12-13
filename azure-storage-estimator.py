@@ -134,19 +134,33 @@ def list_blobs(sub_name, account_name, connection_string, account_url, blob_serv
         file_stats['subscription.storage_account'][sub_name][account_name]['size.ext'][file_extension] += blob.size
         file_stats['subscription.storage_account'][sub_name][account_name]['files.ext'][file_extension] += 1
 
+        # Setup counters for per-account, per-bucket totals
+        if file_extension not in file_stats['subscription.storage_account.container'][sub_name][account_name][container_name]['size.ext']:
+            file_stats['subscription.storage_account.container'][sub_name][account_name][container_name]['size.ext'][file_extension] = 0
+
+        if file_extension not in file_stats['subscription.storage_account.container'][sub_name][account_name][container_name]['files.ext']:
+            file_stats['subscription.storage_account.container'][sub_name][account_name][container_name]['files.ext'][file_extension] = 0
+
+        # Increment per-account, per-bucket counters
+        file_stats['subscription.storage_account.container'][sub_name][account_name][container_name]['size'] += blob.size
+        file_stats['subscription.storage_account.container'][sub_name][account_name][container_name]['files'] += 1
+        file_stats['subscription.storage_account.container'][sub_name][account_name][container_name]['size.ext'][file_extension] += blob.size
+        file_stats['subscription.storage_account.container'][sub_name][account_name][container_name]['files.ext'][file_extension] += 1
+
 def list_containers(sub_name, strorage_account, connection_string, credentials, filter_list):
     account_url = "https://" + strorage_account + ".blob.core.windows.net/"
     blob_service = BlobServiceClient(account_url=account_url, credential=credentials)
     try:
         containers = blob_service.list_containers()
         for container in containers:
+            file_stats['subscription.storage_account.container'][sub.display_name][account.name][container.name] = {'size':0, 'files':0, 'size.ext':{}, 'files.ext':{}}
             list_blobs(sub_name, strorage_account, connection_string, account_url, blob_service, container.name, credentials, filter_list)
     except Exception as ex:
         oprint("error occured {}".format(ex))
         file_stats['errors'].append("Couldn't get containers of subscription:"+sub_name+" storage account:"+strorage_account+"("+str(ex)+")")
 
 if __name__ == "__main__":
-    file_stats    = {'errors':[], 'total':{'size':0, 'files':0, 'size.ext':{}, 'files.ext':{}},'subscription': {}, 'subscription.storage_account':{}}
+    file_stats    = {'errors':[], 'total':{'size':0, 'files':0, 'size.ext':{}, 'files.ext':{}},'subscription': {}, 'subscription.storage_account':{}, 'subscription.storage_account.container':{}}
     options       = get_options()
 
     credentials = ClientSecretCredential(
@@ -176,6 +190,7 @@ if __name__ == "__main__":
 
             file_stats['subscription'][sub.display_name] = {'size':0, 'files':0, 'size.ext':{}, 'files.ext':{}}
             file_stats['subscription.storage_account'][sub.display_name] = {}
+            file_stats['subscription.storage_account.container'][sub.display_name] = {}
             resource_client = ResourceManagementClient(credentials, sub.subscription_id)
             storage_client = StorageManagementClient(credentials, sub.subscription_id)
 
@@ -198,6 +213,7 @@ if __name__ == "__main__":
                             file_stats['errors'].append("Couldn't get account keys in subscription:"+sub.display_name+"("+str(ex)+")")
                             continue
                         file_stats['subscription.storage_account'][sub.display_name][account.name] = {'size':0, 'files':0, 'size.ext':{}, 'files.ext':{}}
+                        file_stats['subscription.storage_account.container'][sub.display_name][account.name] = {}
                         conn_string = f"DefaultEndpointsProtocol=https;EndpointSuffix=core.windows.net;AccountName={account.name};AccountKey={keys.keys[0].value}"
                         list_containers(sub.display_name, account.name, conn_string, keys.keys[1].value, options)
     except Exception as ex:

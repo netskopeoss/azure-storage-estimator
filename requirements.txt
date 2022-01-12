@@ -6,4 +6,3 @@ azure-mgmt-subscription==1.0.0
 haikunator==2.1.0
 pathlib
 argparse
-csv
